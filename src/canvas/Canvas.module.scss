@@ -1,0 +1,56 @@
+/**
+ * @license
+ * Copyright 2026 Google LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+@use '@/shared.lib' as lib;
+
+.canvas {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+
+  &.isCommentMode {
+    :global {
+      .react-flow__pane {
+        cursor: url('/cursor-comment.svg') 14 26, auto !important;
+      }
+      .react-flow__node {
+        pointer-events: none !important;
+      }
+    }
+  }
+
+  :global {
+    .react-flow__handle {
+      opacity: 0;
+      border: 1px solid white;
+      background-color: black;
+    }
+
+    .react-flow__node.dragging,
+    .react-flow__node.dragging>* {
+      cursor: grabbing;
+    }
+
+    .react-flow__node:hover .react-flow__handle {
+      opacity: 1;
+    }
+
+    .react-flow__edge-path {
+      stroke-dasharray: 6 2;
+
+      .touch-area {
+        stroke-width: 12px;
+        stroke-dasharray: none;
+        stroke-opacity: 0;
+      }
+
+      &:hover .touch-area {
+        stroke-opacity: 0.3;
+      }
+    }
+  }
+}
