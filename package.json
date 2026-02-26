@@ -10,7 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@google/genai": "^0.1.0",
+    "@google/generative-ai": "latest",
     "@paper-design/shaders-react": "^0.0.68",
     "@radix-ui/themes": "^3.0.4",
     "@tensorflow-models/speech-commands": "^0.5.4",
@@ -28,7 +28,7 @@
     "@tiptap/react": "^2.4.0",
     "@tiptap/starter-kit": "^2.4.0",
     "@tiptap/suggestion": "^2.4.0",
-    "@xyflow/react": "^11.11.3",
+    "@xyflow/react": "latest",
     "classnames": "^2.5.1",
     "esbuild-wasm": "^0.21.0",
     "firebase": "^10.12.2",
