@@ -3,13 +3,13 @@ import path from "path";
 import { defineConfig } from "vite";
 import tsconfigPaths from "vite-tsconfig-paths";
 import { nodePolyfills } from 'vite-plugin-node-polyfills'
-import ssl from "@vitejs/plugin-basic-ssl";
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react(), tsconfigPaths(), nodePolyfills(), ssl()],
+  plugins: [react(), tsconfigPaths(), nodePolyfills()],
   server: {
-    https: {},
+    host: true,
+    port: 5173,
   },
   resolve: {
     alias: {
