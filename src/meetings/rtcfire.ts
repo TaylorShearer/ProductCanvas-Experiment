@@ -45,12 +45,6 @@ const NegotiationState = {
 };
 
 /**
- * A Firebase Realtime Database ref per
- * {@link https://firebase.google.com/docs/reference/js/firebase.database.Reference}
- */
-type FirebaseDatabaseRef = any;
-
-/**
  * Options object to initialize an RTCFireSession.
  */
 export interface RTCFireSessionOptions {
@@ -64,10 +58,10 @@ export interface RTCFireSessionOptions {
    * After negotiation, this ref shouldn't contain any data.
    */
   negotiationRef:
-    | FirebaseDatabaseRef
+    | DatabaseReference
     | ((peerId: string) => {
-        read: FirebaseDatabaseRef;
-        write: FirebaseDatabaseRef;
+        read: DatabaseReference;
+        write: DatabaseReference;
       });
 
   /**
@@ -121,14 +115,14 @@ export interface RTCFireSessionOptions {
 }
 
 type ParticipantInfo = {
-  readRef: FirebaseDatabaseRef;
-  writeRef: FirebaseDatabaseRef;
+  readRef: DatabaseReference;
+  writeRef: DatabaseReference;
   offerer?: boolean;
-  conn: RTCPeerConnection;
+  conn?: RTCPeerConnection;
   streams: MediaStream[];
   negotiationState?: string;
   readVal?: any;
-  processedIceCandidates: Set<string>;
+  processedIceCandidates?: Set<string>;
   disposers: (() => void)[];
 };
 
@@ -155,7 +149,7 @@ class RTCFireSession {
       try {
         this._sideStream = this.options.sideStream;
         this.localStream = await navigator.mediaDevices.getUserMedia(
-          options.mediaConstraints || DEFAULT_MEDIA_CONSTRAINTS,
+          this.options.mediaConstraints || DEFAULT_MEDIA_CONSTRAINTS,
         );
         this.hasLocalStreams = true;
         this.maybeProcessParticipantChanges();
@@ -293,8 +287,8 @@ class RTCFireSession {
       readRef,
       writeRef,
       offerer,
-      conn: undefined as any, // initialized momentarily
-      processedIceCandidates: undefined as any, // initialized momentarily
+      conn: undefined, // initialized momentarily
+      processedIceCandidates: undefined, // initialized momentarily
       streams: [],
       disposers: [],
     };
@@ -371,6 +365,9 @@ class RTCFireSession {
     };
 
     info.conn.onconnectionstatechange = () => {
+      if (!info.conn) {
+        return;
+      }
       switch (info.conn.connectionState) {
         case "connected":
           // Fully connected
@@ -389,8 +386,10 @@ class RTCFireSession {
     };
 
     if (offerer) {
-      this.addLocalStreamToConnection(info.conn); // triggers negotiation
-      info.conn.onnegotiationneeded = () => this.beginNegotiation(pid);
+      if (info.conn) {
+        this.addLocalStreamToConnection(info.conn); // triggers negotiation
+        info.conn.onnegotiationneeded = () => this.beginNegotiation(pid);
+      }
     }
   }
 
@@ -408,16 +407,19 @@ class RTCFireSession {
     info.conn.onconnectionstatechange = null;
     info.conn.onnegotiationneeded = null;
     info.conn.close();
-    info.conn = undefined as any;
+    info.conn = undefined;
   }
 
   private processNewIceCandidates(pid: string) {
     let info = this.participantInfo[pid];
+    if (!info) {
+      return;
+    }
     let { conn, readVal, processedIceCandidates } = info;
-    let {
-      iceCandidates,
-    }: { iceCandidates: { [key: string]: RTCIceCandidateInit } } = readVal;
-    if (!conn?.remoteDescription?.type || !iceCandidates) {
+    const iceCandidates = readVal?.iceCandidates as
+      | { [key: string]: RTCIceCandidateInit }
+      | undefined;
+    if (!conn?.remoteDescription?.type || !iceCandidates || !processedIceCandidates) {
       return;
     }
 
@@ -441,14 +443,14 @@ class RTCFireSession {
       return;
     }
 
-    let { offerer, writeRef } = info;
-    if (!offerer) {
+    let { conn, offerer, writeRef } = info;
+    if (!offerer || !conn) {
       return;
     }
 
     info.negotiationState = NegotiationState.OffererWaitingForAnswer;
-    let sessionDescription = await info.conn.createOffer();
-    info.conn.setLocalDescription(sessionDescription);
+    let sessionDescription = await conn.createOffer();
+    conn.setLocalDescription(sessionDescription);
     await update(writeRef, {
       offer: sessionDescription,
     });
@@ -460,7 +462,13 @@ class RTCFireSession {
    */
   private async maybeContinueNegotiation(pid: string) {
     let info = this.participantInfo[pid];
+    if (!info) {
+      return;
+    }
     let { conn, negotiationState, writeRef, readVal } = info;
+    if (!conn) {
+      return;
+    }
 
     switch (negotiationState) {
       case NegotiationState.OffererNotStarted: {
@@ -473,7 +481,7 @@ class RTCFireSession {
         if (offer) {
           info.negotiationState = NegotiationState.WaitingToFinishIceCandidates;
           conn.setRemoteDescription(new RTCSessionDescription(offer));
-          this.addLocalStreamToConnection(info.conn);
+          this.addLocalStreamToConnection(conn);
           let sessionDescription = await conn.createAnswer();
           conn.setLocalDescription(sessionDescription);
           await update(writeRef, {
