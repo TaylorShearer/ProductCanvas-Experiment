@@ -32,7 +32,7 @@ import {
   useRef,
   useState,
 } from "react";
-import z from "zod";
+import { zodToJsonSchema } from "zod-to-json-schema";
 
 export const DEFAULT_MODEL: KnownAudioModelName =
   "gemini-2.5-flash-native-audio-preview-12-2025";
@@ -168,8 +168,8 @@ function useLiveAPI({
                     name: t.name,
                     description: t.description,
                     parameters: t.parameters
-                      ? (z.toJSONSchema(t.parameters, {
-                          target: "openapi-3.0",
+                      ? (zodToJsonSchema(t.parameters, {
+                          target: "openApi3",
                         }) as FunctionDeclaration["parameters"])
                       : undefined,
                   }) satisfies FunctionDeclaration,
@@ -279,7 +279,7 @@ function useLiveAPI({
       let toolCall = (e as CustomEvent).detail as LiveServerToolCall;
       console.log({ toolCall });
       let functionResponses = await Promise.all(
-        (toolCall.functionCalls || []).map(async (fc) => {
+        (toolCall.functionCalls || []).map(async (fc: any) => {
           let foundTool = tools?.find((t) => t.name === fc.name);
           let result: any;
           try {

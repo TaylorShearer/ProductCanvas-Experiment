@@ -56,6 +56,7 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import z from "zod";
+import { zodToJsonSchema } from "zod-to-json-schema";
 import styles from "./Editor.module.scss";
 import { NodeInspectorPanel } from "./canvas/NodeInspectorPanel";
 import { MiniAppNodeData, miniAppNodes } from "./canvas/nodes/MiniAppNode";
@@ -362,7 +363,7 @@ ${prompt}
     description: "Adds a node of the given type to the diagram",
     parameters: z.object({
       title: z.string(),
-      type: z.enum(["tech-stack", "user-goal"] satisfies EntityType[]),
+      type: z.enum(["tech-stack", "user-goal"] as const),
     }),
     run({ title, type }) {
       addEntities({
@@ -418,8 +419,8 @@ ${prompt}
             .replace(/\s+/g, " ")
             .trim(),
           responseMimeType: "application/json",
-          responseSchema: z.toJSONSchema(z.array(z.string()), {
-            target: "openapi-3.0",
+          responseSchema: zodToJsonSchema(z.array(z.string()), {
+            target: "openApi3",
           }),
         },
         contents: [

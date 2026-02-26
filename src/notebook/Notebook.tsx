@@ -21,7 +21,7 @@ import StarterKit from "@tiptap/starter-kit";
 import cn from "classnames";
 import js from "highlight.js/lib/languages/javascript";
 import xml from "highlight.js/lib/languages/xml";
-import { lowlight } from "lowlight";
+import { common, createLowlight } from "lowlight";
 import { createContext, useEffect, useMemo, useRef } from "react";
 import { Markdown, MarkdownStorage } from "tiptap-markdown";
 import CodeBlockNode from "./block/CodeBlockNode";
@@ -29,8 +29,9 @@ import SlashCommand from "./editor/SlashCommand";
 import { makeMentionsExtension } from "./mentions/mentions";
 import styles from "./Notebook.module.scss";
 
-lowlight.registerLanguage("js", js);
-lowlight.registerLanguage("html", xml);
+const lowlight = createLowlight(common);
+lowlight.register("js", js);
+lowlight.register("html", xml);
 
 export type NotebookContext = {
   ai: GoogleGenAI;
@@ -142,7 +143,7 @@ export function Notebook({
     ],
     content,
     onUpdate: debounce(() => {
-      const markdownOutput = editor.storage?.markdown.getMarkdown();
+      const markdownOutput = editor?.storage.markdown.getMarkdown();
       onUpdate?.(markdownOutput);
     }),
     autofocus: !content ? "start" : false,

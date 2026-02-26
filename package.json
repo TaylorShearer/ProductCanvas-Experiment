@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@google/genai": "^1.43.0",
     "@google/generative-ai": "latest",
     "@paper-design/shaders-react": "^0.0.68",
     "@radix-ui/themes": "^3.0.4",
@@ -42,7 +43,8 @@
     "react-dom": "^18.2.0",
     "tippy.js": "^6.3.7",
     "tiptap-markdown": "^0.8.9",
-    "zod": "^3.23.8"
+    "zod": "^3.23.8",
+    "zod-to-json-schema": "^3.25.1"
   },
   "devDependencies": {
     "@types/matter-js": "^0.20.2",

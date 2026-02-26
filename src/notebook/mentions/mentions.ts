@@ -124,16 +124,16 @@ export const makeMentionsExtension = ({
                 }
               );
               if (!props.clientRect) return;
-              component.element.style.position = "absolute";
+              (component.element as HTMLElement).style.position = "absolute";
               document
                 .querySelector(".radix-themes")!
                 .appendChild(component.element);
-              updatePosition(props.editor, component.element);
+              updatePosition(props.editor, component.element as HTMLElement);
             },
             onUpdate(props) {
               component.updateProps(propsToInlineMenuProps(props));
               if (!props.clientRect) return;
-              updatePosition(props.editor, component.element);
+              updatePosition(props.editor, component.element as HTMLElement);
             },
             onKeyDown(props) {
               if (props.event.key === "Escape") {
